@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Profile - Job Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">💼 Job Portal</div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Home</a></li>
+      <li><a href="joblist.html">Jobs</a></li>
+      <li><a href="postjob.html">Post</a></li>
+      <li><a href="myapplications.html">My Applications</a></li>
+      <li><a href="profile.html">Profile</a></li>
+      <li><a href="login.html" onclick="logout()">Logout</a></li>
+      <li><a href="application_tracker.html">Tracker</a></li>
+
+    </ul>
+  </nav>
+
+  <div class="container" style="margin-top: 120px;">
+    <h2>👤 My Profile</h2>
+    <div id="profileData"></div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="firebase.js"></script>
+
+  <script>
+    const db = firebase.firestore();
+
+    function loadProfile() {
+      const user = firebase.auth().currentUser;
+      if (!user) return;
+
+      db.collection("users").doc(user.uid).get().then((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          const profile = `
+            <div class="job-card">
+              <p><strong>📛 Name:</strong> ${data.fullName || 'Not Provided'}</p>
+              <p><strong>📧 Email:</strong> ${user.email}</p>
+              <p><strong>📞 Phone:</strong> ${data.phone || 'Not Provided'}</p>
+              <p><strong>🔗 LinkedIn:</strong> <a href="${data.linkedin}" target="_blank">${data.linkedin || 'N/A'}</a></p>
+              <p><strong>📄 Resume:</strong> <a href="${data.resume}" target="_blank">${data.resume || 'N/A'}</a></p>
+            </div>`;
+          document.getElementById("profileData").innerHTML = profile;
+        } else {
+          document.getElementById("profileData").innerHTML = "<p>No profile data found.</p>";
+        }
+      }).catch((err) => {
+        alert("Error loading profile: " + err.message);
+      });
+    }
+
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        loadProfile();
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    function logout() {
+      firebase.auth().signOut().then(() => {
+        window.location.href = "login.html";
+      });
+    }
+  </script>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <span>© 2025 Job Portal by <strong>Chinmayi</strong></span>
+      <span class="pipe">|</span>
+      <span>Made with 💙 for career success</span>
+    </div>
+  </footer>
+</body>
+</html>

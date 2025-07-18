@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Post a Job - Job Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ✅ Navbar First -->
+  <nav class="navbar">
+    <div class="logo">💼 Job Portal</div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Home</a></li>
+      <li><a href="joblist.html">Jobs</a></li>
+      <li><a href="postjob.html">Post</a></li>
+      <li><a href="myapplications.html">My Applications</a></li>
+      <li><a href="application_tracker.html">Tracker</a></li>
+      <li><a href="login.html" onclick="logout()">Logout</a></li>
+    </ul>
+  </nav>
+
+  <!-- ✅ Main Container -->
+  <div class="container">
+    <h2>📤 Post a New Job</h2>
+    <p style="margin-bottom: 20px; color: #555;">Fill the form below to publish a job listing.</p>
+
+    <input type="text" id="title" placeholder="Job Title (e.g. Frontend Developer)">
+    <input type="text" id="company" placeholder="Company Name (e.g. Infosys)">
+    <textarea id="description" rows="5" placeholder="Job Description"></textarea>
+    <input type="number" id="expiryDays" placeholder="Expiry in Days (e.g. 30)" required>
+
+    <button onclick="postJob()">✅ Submit Job</button>
+    <a href="dashboard.html"><button>🔙 Back to Dashboard</button></a>
+  </div>
+
+  <!-- ✅ Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <span>© 2025 Job Portal by <strong>Chinmayi</strong></span>
+      <span class="pipe">|</span>
+      <span>Made with 💙 for career success</span>
+    </div>
+  </footer>
+
+  <!-- ✅ Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <!-- ✅ Firebase Config -->
+  <script src="firebase.js"></script>
+
+  <!-- ✅ Post Job Logic -->
+  <script>
+    const db = firebase.firestore();
+
+    function postJob() {
+      const title = document.getElementById("title").value;
+      const company = document.getElementById("company").value;
+      const description = document.getElementById("description").value;
+      const expiryDays = parseInt(document.getElementById("expiryDays").value);
+
+      if (!title || !company || !description || !expiryDays || expiryDays <= 0) {
+        alert("Please fill all fields with valid values.");
+        return;
+      }
+
+      const createdAt = new Date();
+      const expiryDate = new Date();
+      expiryDate.setDate(createdAt.getDate() + expiryDays);
+
+      db.collection("jobs").add({
+        title: title,
+        company: company,
+        description: description,
+        createdAt: firebase.firestore.Timestamp.fromDate(createdAt),
+        expiryDate: firebase.firestore.Timestamp.fromDate(expiryDate)
+      }).then(() => {
+        alert("🎉 Job posted successfully with expiry!");
+        window.location.href = "dashboard.html";
+      }).catch((error) => {
+        alert("Error posting job: " + error.message);
+      });
+    }
+  </script>
+
+</body>
+</html>

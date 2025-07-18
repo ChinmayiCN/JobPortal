@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Applications - Job Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ✅ Navbar -->
+  <nav class="navbar">
+    <div class="logo">💼 Job Portal</div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Home</a></li>
+      <li><a href="joblist.html">Jobs</a></li>
+      <li><a href="postjob.html">Post</a></li>
+      <li><a href="myapplications.html">My Applications</a></li>
+      <li><a href="login.html" onclick="logout()">Logout</a></li>
+      <li><a href="application_tracker.html">Tracker</a></li>
+
+    </ul>
+  </nav>
+
+  <!-- ✅ Applications Content -->
+  <div class="container" style="margin-top: 120px;">
+    <h2>💼 My Applications</h2>
+    <div id="applicationList"></div>
+  </div>
+
+  <!-- ✅ Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <!-- ✅ Firebase Config -->
+  <script src="firebase.js"></script>
+
+  <!-- ✅ Application Logic -->
+  <script>
+    const db = firebase.firestore();
+
+    function loadApplications() {
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        alert("Please login first.");
+        return;
+      }
+
+      db.collection("applications")
+        .where("userId", "==", user.uid)
+        .get()
+        .then((snapshot) => {
+          const list = document.getElementById("applicationList");
+          list.innerHTML = "";
+
+          if (snapshot.empty) {
+            list.innerHTML = "<p>You haven't applied for any jobs yet.</p>";
+            return;
+          }
+
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            const date = data.appliedAt?.toDate()?.toLocaleString() || "Unknown time";
+
+            const div = document.createElement("div");
+            div.classList.add("job-card");
+            div.innerHTML = `
+              <h3>📌 ${data.jobTitle}</h3>
+              <p><strong>🏢 Company:</strong> ${data.company}</p>
+              <p><strong>📧 Email:</strong> ${data.userEmail}</p>
+              <p><strong>🕒 Applied At:</strong> ${date}</p>
+            `;
+            list.appendChild(div);
+          });
+        })
+        .catch((error) => {
+          alert("Failed to fetch applications: " + error.message);
+        });
+    }
+
+    function logout() {
+      firebase.auth().signOut().then(() => {
+        window.location.href = "login.html";
+      });
+    }
+
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        loadApplications();
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+  </script>
+
+  <!-- ✅ Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <span>© 2025 Job Portal by <strong>Chinmayi</strong></span>
+      <span class="pipe">|</span>
+      <span>Made with 💙 for career success</span>
+    </div>
+  </footer>
+
+</body>
+</html>

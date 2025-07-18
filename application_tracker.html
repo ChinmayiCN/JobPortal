@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Application Tracker - Job Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">💼 Job Portal</div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Home</a></li>
+      <li><a href="joblist.html">Jobs</a></li>
+      <li><a href="postjob.html">Post</a></li>
+      <li><a href="myapplications.html">My Applications</a></li>
+      <li><a href="application_tracker.html">Tracker</a></li>
+      <li><a href="login.html" onclick="logout()">Logout</a></li>
+    </ul>
+  </nav>
+
+  <!-- Tracker Section -->
+  <div class="container" style="margin-top: 120px;">
+    <h2>📊 Application Tracker</h2>
+    <div id="trackerList"></div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <script src="firebase.js"></script>
+
+  <script>
+    const db = firebase.firestore();
+
+    function logout() {
+      firebase.auth().signOut().then(() => {
+        window.location.href = "login.html";
+      });
+    }
+
+    function loadTracker() {
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        alert("Please login first.");
+        return;
+      }
+
+      db.collection("applications")
+        .where("userId", "==", user.uid)
+        .orderBy("appliedAt", "desc")
+        .get()
+        .then((snapshot) => {
+          const trackerList = document.getElementById("trackerList");
+          trackerList.innerHTML = "";
+
+          if (snapshot.empty) {
+            trackerList.innerHTML = "<p>No applications found.</p>";
+            return;
+          }
+
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            const date = data.appliedAt?.toDate()?.toLocaleString() || "Unknown";
+            const status = data.status || "Pending";
+
+            const div = document.createElement("div");
+            div.classList.add("job-card");
+            div.innerHTML = `
+              <h3>📌 ${data.jobTitle}</h3>
+              <p><strong>🏢 Company:</strong> ${data.company}</p>
+              <p><strong>🕒 Applied At:</strong> ${date}</p>
+              <p><strong>📌 Status:</strong> ${status}</p>
+            `;
+            trackerList.appendChild(div);
+          });
+        })
+        .catch((error) => {
+          alert("Error loading tracker: " + error.message);
+        });
+    }
+
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) loadTracker();
+      else window.location.href = "login.html";
+    });
+  </script>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <span>© 2025 Job Portal by <strong>Chinmayi</strong></span>
+      <span class="pipe">|</span>
+      <span>Made with 💙 for career success</span>
+    </div>
+  </footer>
+</body>
+</html>

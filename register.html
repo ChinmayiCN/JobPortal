@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Job Portal - Register</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ✅ Navbar -->
+  <nav class="navbar">
+    <div class="logo">💼 Job Portal</div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Home</a></li>
+      <li><a href="joblist.html">Jobs</a></li>
+      <li><a href="postjob.html">Post</a></li>
+      <li><a href="myapplications.html">My Applications</a></li>
+      <li><a href="login.html" onclick="logout()">Logout</a></li>
+      <li><a href="application_tracker.html">Tracker</a></li>
+
+    </ul>
+  </nav>
+
+  <!-- ✅ Registration Form -->
+  <div class="container">
+  <h2>Create an Account</h2>
+  <input type="email" id="regEmail" placeholder="Enter Email" required><br>
+  <input type="password" id="regPassword" placeholder="Enter Password" required><br>
+  <input type="text" id="fullName" placeholder="Full Name" required><br>
+  <input type="tel" id="phone" placeholder="Phone Number" required><br>
+  <input type="url" id="linkedin" placeholder="LinkedIn Profile URL"><br>
+  <input type="url" id="resume" placeholder="Resume Drive Link"><br>
+  <button onclick="register()">Register</button>
+  <p>Already have an account? <a href="login.html">Login</a></p>
+</div>
+
+
+  <!-- ✅ Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <span>© 2025 Job Portal by <strong>Chinmayi</strong></span>
+      <span class="pipe">|</span>
+      <span>Made with 💙 for career success</span>
+    </div>
+  </footer>
+
+  <!-- ✅ Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+  <!-- ✅ Firebase Config -->
+  <script src="firebase.js"></script>
+
+  <!-- ✅ Register Logic -->
+  <script src="register.js"></script>
+
+</body>
+</html>

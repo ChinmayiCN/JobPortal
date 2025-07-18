@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Panel - Job Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">🛠️ Admin Panel</div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Home</a></li>
+      <li><a href="admin.html">Admin Panel</a></li>
+      <li><a href="login.html" onclick="logout()">Logout</a></li>
+    </ul>
+  </nav>
+
+  <div class="container" style="margin-top: 120px;">
+    <h2>📋 All Job Applications</h2>
+    <div id="adminAppList"></div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <!-- Config -->
+  <script src="firebase.js"></script>
+
+  <script>
+    const db = firebase.firestore();
+    const adminEmail = "testuser@gmail.com"; // ✅ Replace with your actual admin email
+
+    function loadAllApplications() {
+      db.collection("applications").orderBy("appliedAt", "desc").get()
+        .then((snapshot) => {
+          const container = document.getElementById("adminAppList");
+          container.innerHTML = "";
+
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            const appliedTime = data.appliedAt?.toDate()?.toLocaleString() || "N/A";
+
+            const div = document.createElement("div");
+            div.classList.add("job-card");
+            div.innerHTML = `
+              <h3>📌 ${data.jobTitle}</h3>
+              <p><strong>🏢 Company:</strong> ${data.company}</p>
+              <p><strong>👤 Name:</strong> ${data.fullName}</p>
+              <p><strong>📧 Email:</strong> ${data.userEmail}</p>
+              <p><strong>📞 Phone:</strong> ${data.phone}</p>
+              <p><strong>🔗 LinkedIn:</strong> <a href="${data.linkedin}" target="_blank">${data.linkedin}</a></p>
+              <p><strong>📄 Resume:</strong> <a href="${data.resume}" target="_blank">View Resume</a></p>
+              <p><strong>📝 Cover Letter:</strong> ${data.coverLetter || "N/A"}</p>
+              <p><strong>🕒 Applied At:</strong> ${appliedTime}</p>
+            `;
+            container.appendChild(div);
+          });
+        })
+        .catch((error) => {
+          alert("Error fetching applications: " + error.message);
+        });
+    }
+
+    function logout() {
+      firebase.auth().signOut().then(() => {
+        window.location.href = "login.html";
+      });
+    }
+
+    // ✅ Combined logic: check admin and load applications
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user && user.email === adminEmail) {
+        loadAllApplications();
+      } else {
+        alert("Access denied. Admins only.");
+        window.location.href = "dashboard.html";
+      }
+    });
+  </script>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <span>© 2025 Job Portal by <strong>Chinmayi</strong></span>
+      <span class="pipe">|</span>
+      <span>Admin Management Panel</span>
+    </div>
+  </footer>
+</body>
+</html>

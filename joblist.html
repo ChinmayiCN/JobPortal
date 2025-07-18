@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Job Listings - Job Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ✅ Navbar -->
+  <nav class="navbar">
+    <div class="logo">💼 Job Portal</div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Home</a></li>
+      <li><a href="joblist.html">Jobs</a></li>
+      <li><a href="postjob.html">Post</a></li>
+      <li><a href="myapplications.html">My Applications</a></li>
+      <li><a href="application_tracker.html">Tracker</a></li>
+      <li><a href="login.html" onclick="logout()">Logout</a></li>
+    </ul>
+  </nav>
+
+  <!-- ✅ Search Bar -->
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="🔍 Search jobs by title or company..." onkeyup="filterJobs()">
+  </div>
+
+  <!-- ✅ Job Listings -->
+  <div class="container">
+    <h2>📋 Available Job Listings</h2>
+    <div id="jobList"></div>
+    <br>
+    <a href="dashboard.html"><button>🔙 Back to Dashboard</button></a>
+  </div>
+
+  <!-- ✅ Apply Modal Form -->
+  <div id="applyModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2>📩 Apply for this Job</h2>
+      <form id="applyForm">
+        <input type="text" id="fullName" placeholder="Full Name" required />
+        <input type="tel" id="phone" placeholder="Phone Number" required />
+        <input type="url" id="linkedin" placeholder="LinkedIn Profile Link" />
+        <input type="url" id="resume" placeholder="Resume Drive Link" required />
+        <textarea id="coverLetter" placeholder="Cover Letter (optional)"></textarea>
+        <button type="submit">Submit Application</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ✅ Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <span>© 2025 Job Portal by <strong>Chinmayi</strong></span>
+      <span class="pipe">|</span>
+      <span>Made with 💙 for career success</span>
+    </div>
+  </footer>
+
+  <!-- ✅ Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <!-- ✅ Firebase Config -->
+  <script src="firebase.js"></script>
+
+  <!-- ✅ Job Load & Filter Script -->
+  <script>
+    const db = firebase.firestore();
+    let allJobs = [];
+    let currentJobId = "", currentJobTitle = "", currentCompany = "";
+
+    function loadJobs() {
+      db.collection("jobs").orderBy("createdAt", "desc").get().then((snapshot) => {
+        allJobs = [];
+        const now = new Date();
+
+        snapshot.forEach((doc) => {
+          const job = doc.data();
+          job.id = doc.id;
+
+          // ✅ Expiry Date Check
+          const expiry = job.expiryDate?.toDate?.();
+          if (expiry && expiry < now) return; // Skip expired jobs
+
+          allJobs.push(job);
+        });
+
+        renderJobs(allJobs);
+      }).catch((error) => {
+        console.error("Error loading jobs:", error);
+      });
+    }
+
+    function renderJobs(jobs) {
+      const jobList = document.getElementById("jobList");
+      jobList.innerHTML = "";
+
+      if (jobs.length === 0) {
+        jobList.innerHTML = "<p>No matching jobs found.</p>";
+        return;
+      }
+
+      jobs.forEach((job) => {
+        const div = document.createElement("div");
+        div.classList.add("job-card");
+        div.innerHTML = `
+          <h3>🔵 ${job.title}</h3>
+          <p><strong>🏢 Company:</strong> ${job.company}</p>
+          <p><strong>📄 Description:</strong> ${job.description}</p>
+          <button onclick="applyJob('${job.id}', '${job.title}', '${job.company}')">📩 Apply Now</button>
+        `;
+        jobList.appendChild(div);
+      });
+    }
+
+    function filterJobs() {
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      const filtered = allJobs.filter(job =>
+        job.title.toLowerCase().includes(query) ||
+        job.company.toLowerCase().includes(query)
+      );
+      renderJobs(filtered);
+    }
+
+    function applyJob(jobId, title, company) {
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        alert("Please login to apply.");
+        return;
+      }
+
+      currentJobId = jobId;
+      currentJobTitle = title;
+      currentCompany = company;
+
+      document.getElementById("applyModal").style.display = "block";
+      document.getElementById("applyForm").reset();
+    }
+
+    function closeModal() {
+      document.getElementById("applyModal").style.display = "none";
+    }
+
+    document.getElementById("applyForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        alert("Please login.");
+        return;
+      }
+
+      const fullName = document.getElementById("fullName").value;
+      const phone = document.getElementById("phone").value;
+      const linkedin = document.getElementById("linkedin").value;
+      const resume = document.getElementById("resume").value;
+      const coverLetter = document.getElementById("coverLetter").value;
+
+      db.collection("applications").add({
+        userId: user.uid,
+        userEmail: user.email,
+        fullName,
+        phone,
+        linkedin,
+        resume,
+        coverLetter,
+        jobId: currentJobId,
+        jobTitle: currentJobTitle,
+        company: currentCompany,
+        appliedAt: firebase.firestore.FieldValue.serverTimestamp()
+      })
+      .then(() => {
+        alert("🎉 Application submitted successfully!");
+        closeModal();
+      })
+      .catch((error) => {
+        alert("Error: " + error.message);
+      });
+    });
+
+    window.onload = loadJobs;
+  </script>
+
+</body>
+</html>
